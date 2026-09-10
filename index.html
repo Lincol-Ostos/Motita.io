@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Feliz Aniversario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400;1,9..144,600&family=Great+Vibes&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     EDITA AQUÍ LOS TEXTOS PRINCIPALES SI QUIERES CAMBIARLOS RÁPIDO
+     (los textos de cada foto están en el <script> más abajo,
+     buscar el objeto SCENES)
+     ============================================================ */
+
+  :root{
+    --ink: #f7f2ea;
+    --ink-dim: rgba(247,242,234,.62);
+    --duration: .9s;
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{
+    margin:0; padding:0; height:100%; width:100%;
+    background:#050506; overflow:hidden;
+    font-family:'Sora', sans-serif;
+    color: var(--ink);
+    -webkit-user-select:none; user-select:none;
+  }
+  img, video{ -webkit-user-drag:none; user-drag:none; pointer-events:none; }
+
+  /* la experiencia está pensada para celular: en pantallas anchas
+     (laptop/tablet) se muestra centrada con proporción de teléfono */
+  .frame{
+    position:relative; width:100%; height:100dvh;
+    max-width:480px; margin:0 auto; overflow:hidden; background:#000;
+  }
+  @media (min-width:661px){
+    body{ display:flex; align-items:center; justify-content:center; }
+    .frame{
+      height:min(92vh,900px);
+      border-radius:30px;
+      box-shadow: 0 50px 120px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.07);
+    }
+  }
+
+  /* ---------- PANTALLA DE BIENVENIDA ---------- */
+  #welcome{
+    position:absolute; inset:0; z-index:50;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:28px;
+    background:#08090c;
+    text-align:center;
+    padding: 32px;
+    transition: opacity 1s var(--ease), visibility 1s;
+  }
+  #welcome::before{
+    content:''; position:absolute; inset:0; z-index:0;
+    background-image:url('02.jpg');
+    background-size:cover; background-position:center;
+    filter: blur(38px) brightness(.35) saturate(1.1);
+    transform: scale(1.15);
+  }
+  #welcome::after{
+    content:''; position:absolute; inset:0; z-index:0;
+    background: radial-gradient(120% 90% at 50% 20%, rgba(8,9,12,.2), rgba(137, 32, 58, 0.94) 78%);
+  }
+  #welcome.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+
+  .welcome-content{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:22px; }
+
+  .romantic-headline{
+    font-family:'Great Vibes', cursive;
+    color:#ff1744;
+    font-size: clamp(2rem, 10vw, 3.4rem);
+    line-height:1.15; margin:0; max-width:16ch;
+    text-shadow: 0 0 22px rgba(255,23,68,.5), 0 0 4px rgba(255,23,68,.35);
+    opacity:0; animation: rise 1s var(--ease) 0s forwards;
+  }
+
+  .eyebrow{
+    font-size: 12.5px; letter-spacing:.32em; color: var(--ink-dim);
+    opacity:0; animation: rise .9s var(--ease) .15s forwards;
+  }
+  .welcome-title{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:400;
+    font-size: clamp(2.4rem, 9vw, 4.2rem); line-height:1.05; margin:0;
+    max-width: 15ch;
+    opacity:0; animation: rise 1.1s var(--ease) .35s forwards;
+  }
+  .welcome-sub{
+    max-width: 34ch; font-size:15px; line-height:1.6; color: var(--ink-dim); margin:0;
+    opacity:0; animation: rise 1s var(--ease) .6s forwards;
+  }
+  @keyframes rise{ from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
+
+  #startBtn{
+    position:relative; z-index:2;
+    margin-top: 6px;
+    padding: 16px 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(247,242,234,.35);
+    background: rgba(247,242,234,.06);
+    backdrop-filter: blur(6px);
+    color: var(--ink);
+    font-family:'Sora', sans-serif; font-size:14px; letter-spacing:.05em;
+    cursor:pointer;
+    opacity:0; animation: rise 1s var(--ease) .9s forwards;
+    transition: transform .45s var(--ease), background .45s var(--ease), border-color .45s var(--ease);
+  }
+  #startBtn:active{ transform: scale(.94); background: rgba(247,242,234,.14); border-color: rgba(247,242,234,.6); }
+
+  /* ---------- BARRA DE PROGRESO ---------- */
+  #progress{
+    position:absolute; top:0; left:0; right:0; z-index:40;
+    display:flex; gap:6px;
+    padding: 14px 16px 0;
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+  #progress span{
+    flex:1; height:2.5px; border-radius:2px;
+    background: rgba(255,255,255,.22);
+    overflow:hidden;
+  }
+  #progress span i{
+    display:block; height:100%; width:0%;
+    background: var(--ink);
+    transition: width .35s ease;
+  }
+  #progress span.done i{ width:100%; }
+
+  /* ---------- ESCENAS ---------- */
+  .stage{ position:absolute; inset:0; }
+  .scene{
+    position:absolute; inset:0;
+    opacity:0; visibility:hidden;
+    transition: opacity 1.1s var(--ease);
+  }
+  .scene.active{ opacity:1; visibility:visible; z-index:5; }
+
+  .media-wrap{ position:absolute; inset:0; overflow:hidden; }
+  .media{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover;
+    transform: scale(1.08);
+  }
+  .scene.active .media{ animation: kenburns 7s var(--ease) forwards; }
+  @keyframes kenburns{ from{ transform:scale(1.08);} to{ transform:scale(1); } }
+
+  .overlay{ position:absolute; inset:0; }
+
+  /* filtro de color propio de cada escenografía, estilo "grading" de cine */
+  .tint{ position:absolute; inset:0; mix-blend-mode:soft-light; }
+  .grain{
+    position:absolute; inset:0; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .vignette{
+    position:absolute; inset:0;
+    background: radial-gradient(120% 120% at 50% 42%, transparent 52%, rgba(0,0,0,.5) 100%);
+  }
+
+  .caption{
+    position:absolute; left:0; right:0; bottom:0;
+    padding: 0 28px max(46px, calc(env(safe-area-inset-bottom) + 30px));
+    z-index:2;
+  }
+  .caption p{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:400;
+    font-size: clamp(1.5rem, 6.4vw, 2.5rem);
+    line-height:1.25; max-width:15ch; margin:0;
+  }
+  .caption .num{
+    display:block; font-family:'Sora'; font-style:normal;
+    font-size:12px; letter-spacing:.3em; margin-bottom:14px;
+    opacity:.7;
+  }
+  .scene.active .caption p, .scene.active .caption .num{
+    opacity:0; transform: translateY(22px);
+    animation: rise .95s var(--ease) .5s forwards;
+  }
+  .scene.active .caption .num{ animation-delay:.3s; }
+
+  .hint{
+    position:absolute; top:24px; right:22px; z-index:3;
+    font-size:11px; letter-spacing:.12em; color: rgba(255,255,255,.55);
+    opacity:0; animation: fadeInOut 3.2s ease 1.1s forwards;
+    padding-top: env(safe-area-inset-top);
+  }
+  @keyframes fadeInOut{ 0%{opacity:0;} 18%{opacity:1;} 78%{opacity:1;} 100%{opacity:0;} }
+
+  .tap-zone{ position:absolute; top:0; bottom:0; width:38%; z-index:10; }
+  .tap-zone.left{ left:0; }
+  .tap-zone.right{ right:0; }
+
+  /* ---------- ESCENOGRAFÍA 1 — rosa cálido vívido ---------- */
+  .scene-1 .media{ filter: saturate(1.4) contrast(1.06); }
+  .scene-1 .overlay{ background:
+      linear-gradient(0deg, rgba(58,6,18,.86) 0%, rgba(58,6,18,.14) 46%, rgba(58,6,18,.05) 60%),
+      linear-gradient(200deg, rgba(255,64,96,.24), transparent 55%);
+  }
+  .scene-1 .tint{ background: rgba(255,58,110,.3); }
+  .scene-1 .caption{ color:#ffeaf0; }
+  .scene-1 .num{ color:#ff9db8; }
+
+  /* ---------- ESCENOGRAFÍA 2 — fucsia vívido ---------- */
+  .scene-2 .media{ filter: saturate(1.5) hue-rotate(-4deg) contrast(1.06); }
+  .scene-2 .overlay{ background:
+      linear-gradient(0deg, rgba(46,4,32,.88) 0%, rgba(46,4,32,.12) 48%, transparent 62%),
+      linear-gradient(210deg, rgba(255,42,150,.26), transparent 55%);
+  }
+  .scene-2 .tint{ background: rgba(255,30,130,.28); }
+  .scene-2 .caption{ color:#ffe6f4; }
+  .scene-2 .num{ color:#ff8fce; }
+
+  /* ---------- ESCENOGRAFÍA 3 — rosa suave vívido ---------- */
+  .scene-3 .media{ filter: saturate(1.35) contrast(1.04); }
+  .scene-3 .overlay{ background:
+      linear-gradient(0deg, rgba(54,6,26,.86) 0%, rgba(54,6,26,.12) 48%, transparent 62%),
+      linear-gradient(210deg, rgba(255,96,140,.26), transparent 55%);
+  }
+  .scene-3 .tint{ background: rgba(255,84,132,.26); }
+  .scene-3 .caption{ color:#ffe9f0; }
+  .scene-3 .num{ color:#ffa6c2; }
+
+  /* ---------- ESCENOGRAFÍA 4 — rojo vino elegante ---------- */
+  .scene-4 .media{ filter: saturate(1.3) contrast(1.1) brightness(.99); }
+  .scene-4 .overlay{ background:
+      linear-gradient(0deg, rgba(30,2,10,.9) 0%, rgba(30,2,10,.1) 50%, transparent 64%),
+      linear-gradient(200deg, rgba(210,20,60,.24), transparent 55%);
+  }
+  .scene-4 .tint{ background: rgba(200,20,60,.24); }
+  .scene-4 .caption{ color:#ffeef0; }
+  .scene-4 .num{ color:#ff7a94; }
+
+  /* ---------- ESCENOGRAFÍA FINAL — rojo-dorado, la más especial ---------- */
+  .scene-final .media{ filter: saturate(1.3) brightness(1.02); }
+  .scene-final .overlay{ background:
+      linear-gradient(0deg, rgba(40,4,10,.84) 0%, rgba(40,4,10,.05) 55%, transparent 68%),
+      radial-gradient(120% 70% at 50% 100%, rgba(255,90,80,.22), transparent 60%);
+  }
+  .scene-final .tint{ background: rgba(255,70,90,.28); }
+  .scene-final .caption{ color:#fff1e8; }
+  .scene-final .caption p{ font-size: clamp(1.7rem, 7vw, 2.9rem); max-width:16ch; }
+  .scene-final .num{ color:#ffb27a; }
+
+  /* video final visible completo, sin recortes: el video real va en
+     "contain" y una copia difuminada del mismo rellena los bordes */
+  .video-fg{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain; background:transparent;
+  }
+  .scene-final .media-blur{
+    filter: blur(50px) brightness(.5) saturate(1.4) !important;
+  }
+
+  .replay{
+    position:absolute; z-index:3; right:26px; bottom: max(46px, calc(env(safe-area-inset-bottom) + 30px));
+    width:52px; height:52px; border-radius:50%;
+    border:1px solid rgba(255,246,222,.4); background: rgba(255,246,222,.08);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition: opacity .6s ease .4s;
+  }
+  .scene-final.active .replay{ opacity:1; }
+  .replay svg{ width:20px; height:20px; }
+
+  /* lluvia de corazones — sutil, no bloquea la lectura de fotos ni frases */
+  .heart-layer{ position:absolute; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+  .heart{
+    position:absolute; top:-8%; z-index:2;
+    line-height:1; opacity:0; will-change: transform, opacity;
+    filter: blur(.2px);
+    animation: heartFall linear forwards;
+  }
+  @keyframes heartFall{
+    0%{ opacity:0; transform: translate(0,0) rotate(-6deg); }
+    10%{ opacity: var(--peak, .4); }
+    82%{ opacity: var(--peak, .4); }
+    100%{ opacity:0; transform: translate(var(--drift,24px), 128vh) rotate(6deg); }
+  }
+  #welcome .heart-layer{ z-index:1; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div id="welcome">
+    <div class="heart-layer" id="welcomeHearts"></div>
+    <div class="welcome-content">
+      <p class="romantic-headline">Feliz aniversario, mi amor Motita❤️❤️</p>
+      <span class="eyebrow">UN MES MÁS</span>
+      <h1 class="welcome-title">Feliz&nbsp;Aniversario, mi amor</h1>
+      <p class="welcome-sub">Preparé algo para recorrer con mucho cariño cuycita.</p>
+      <button id="startBtn">Continuar.....</button>
+    </div>
+  </div>
+
+  <div id="progress"></div>
+
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+/* ============================================================
+   1) CONFIGURA AQUÍ TUS ARCHIVOS Y TEXTOS
+   - "src": la ruta del archivo tal como lo subas a GitHub
+     (si los subes en la misma carpeta que este HTML, deja los
+     nombres tal cual; si usas una subcarpeta, ej. "assets/02.jpg",
+     cámbialo aquí).
+   - "type": "image" o "video"
+   - "phrase": la frase que aparece sobre la foto
+   ============================================================ */
+const SCENES = [
+  {
+    type: 'image',
+    src: '02.jpg',
+    theme: 'scene-1',
+    phrase: 'Hay días en que hasta el viento se pone de acuerdo contigo para verte así de bonita.'
+  },
+  {
+    type: 'image',
+    src: '03.jpg',
+    theme: 'scene-2',
+    phrase: 'Amo todas las tonterías que hemos inventado juntos,'
+  },
+  {
+    type: 'image',
+    src: '04.jpg',
+    theme: 'scene-3',
+    phrase: 'Contigo todo es una escena bonita.'
+  },
+  {
+    type: 'image',
+    src: '05.jpg',
+    theme: 'scene-4',
+    phrase: 'A veces me quedo viendo tu cara sin ninguna razón, solo porque puedo.'
+  },
+  {
+    type: 'video',
+    src: '01.mp4',
+    theme: 'scene-final',
+    phrase: 'De todo lo que pasó en estos meses, tú sigues siendo lo mejor. Feliz aniversario❤️.',
+    special: true
+  }
+];
+
+/* ============================================================
+   2) A partir de aquí ya no necesitas tocar nada
+   ============================================================ */
+const stage = document.getElementById('stage');
+const progressBar = document.getElementById('progress');
+let current = 0;
+let built = false;
+
+SCENES.forEach((_, i) => {
+  const seg = document.createElement('span');
+  seg.innerHTML = '<i></i>';
+  progressBar.appendChild(seg);
+});
+
+function buildScene(scene, index){
+  const el = document.createElement('div');
+  el.className = 'scene ' + scene.theme;
+  el.dataset.index = index;
+
+  const mediaWrap = document.createElement('div');
+  mediaWrap.className = 'media-wrap';
+
+  let mediaEl;
+  if(scene.type === 'video'){
+    mediaEl = document.createElement('video');
+    mediaEl.src = scene.src;
+    mediaEl.muted = true;
+    mediaEl.playsInline = true;
+    mediaEl.loop = true;
+    mediaEl.autoplay = false;
+    mediaEl.className = 'media media-blur';
+    mediaWrap.appendChild(mediaEl);
+
+    const fg = document.createElement('video');
+    fg.src = scene.src;
+    fg.muted = true;
+    fg.playsInline = true;
+    fg.loop = true;
+    fg.autoplay = false;
+    fg.className = 'video-fg';
+    mediaWrap.appendChild(fg);
+
+    [mediaEl, fg].forEach(v => {
+      v.addEventListener('timeupdate', () => { if(v.currentTime >= 5){ v.currentTime = 0; } });
+    });
+  } else {
+    mediaEl = document.createElement('img');
+    mediaEl.src = scene.src;
+    mediaEl.alt = '';
+    mediaEl.className = 'media';
+    mediaWrap.appendChild(mediaEl);
+  }
+
+  const tint = document.createElement('div');
+  tint.className = 'tint';
+  const grain = document.createElement('div');
+  grain.className = 'grain';
+  const vignette = document.createElement('div');
+  vignette.className = 'vignette';
+  mediaWrap.appendChild(tint);
+  mediaWrap.appendChild(grain);
+  mediaWrap.appendChild(vignette);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  const heartLayer = document.createElement('div');
+  heartLayer.className = 'heart-layer';
+
+  const caption = document.createElement('div');
+  caption.className = 'caption';
+  const num = document.createElement('span');
+  num.className = 'num';
+  num.textContent = scene.special
+    ? 'LA MÁS ESPECIAL'
+    : (index + 1) + ' / ' + (SCENES.length - 1);
+  const p = document.createElement('p');
+  p.textContent = scene.phrase;
+  caption.appendChild(num);
+  caption.appendChild(p);
+
+  el.appendChild(mediaWrap);
+  el.appendChild(overlay);
+  el.appendChild(heartLayer);
+  el.appendChild(caption);
+
+  if(scene.special){
+    const replay = document.createElement('button');
+    replay.className = 'replay';
+    replay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff6de" stroke-width="1.6"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 20v-6h6"/></svg>';
+    replay.addEventListener('click', (e) => { e.stopPropagation(); goTo(0); });
+    el.appendChild(replay);
+  }
+
+  const left = document.createElement('div');
+  left.className = 'tap-zone left';
+  left.addEventListener('click', prev);
+  const right = document.createElement('div');
+  right.className = 'tap-zone right';
+  right.addEventListener('click', next);
+  el.appendChild(left);
+  el.appendChild(right);
+
+  if(index === 0){
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.textContent = 'CONTINUAR.....';
+    el.appendChild(hint);
+  }
+
+  return el;
+}
+
+function buildAll(){
+  if(built) return;
+  SCENES.forEach((s, i) => stage.appendChild(buildScene(s, i)));
+  built = true;
+}
+
+/* ---------- lluvia de corazones, sutil y por escenografía ---------- */
+const ACCENTS = {
+  'scene-1': '#ff9db8',
+  'scene-2': '#ff8fce',
+  'scene-3': '#ffa6c2',
+  'scene-4': '#ff7a94',
+  'scene-final': '#ffb27a'
+};
+const MAX_HEARTS = 5;
+let heartTimer = null;
+
+function spawnHeart(container, color){
+  if(container.querySelectorAll('.heart').length >= MAX_HEARTS) return;
+  const h = document.createElement('span');
+  h.className = 'heart';
+  h.textContent = '♥';
+  h.style.left = (6 + Math.random()*88) + '%';
+  h.style.fontSize = (10 + Math.random()*9) + 'px';
+  h.style.color = color;
+  h.style.setProperty('--drift', (Math.random()*50 - 25) + 'px');
+  h.style.setProperty('--peak', (0.26 + Math.random()*0.2).toFixed(2));
+  h.style.animationDuration = (8 + Math.random()*4) + 's';
+  h.addEventListener('animationend', () => h.remove());
+  container.appendChild(h);
+}
+
+function startHeartRain(container, color){
+  stopHeartRain();
+  if(!container) return;
+  spawnHeart(container, color);
+  heartTimer = setInterval(() => spawnHeart(container, color), 950);
+}
+
+function stopHeartRain(){
+  if(heartTimer){ clearInterval(heartTimer); heartTimer = null; }
+}
+
+function goTo(index){
+  if(index < 0 || index >= SCENES.length) return;
+  const scenes = stage.querySelectorAll('.scene');
+  let activeHeartLayer = null;
+  scenes.forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+    if(SCENES[i].type === 'video'){
+      const vids = el.querySelectorAll('video');
+      vids.forEach(v => {
+        if(i === index){ v.currentTime = 0; v.play().catch(()=>{}); }
+        else { v.pause(); }
+      });
+    }
+    if(i === index){ activeHeartLayer = el.querySelector('.heart-layer'); }
+  });
+
+  const segs = progressBar.querySelectorAll('span');
+  segs.forEach((seg, i) => seg.classList.toggle('done', i <= index));
+
+  startHeartRain(activeHeartLayer, ACCENTS[SCENES[index].theme] || '#f4d35e');
+  current = index;
+}
+
+function next(){
+  if(current < SCENES.length - 1){ goTo(current + 1); }
+}
+function prev(){
+  if(current > 0){ goTo(current - 1); }
+}
+
+document.addEventListener('keydown', (e) => {
+  if(document.getElementById('welcome').classList.contains('hidden')){
+    if(e.key === 'ArrowRight') next();
+    if(e.key === 'ArrowLeft') prev();
+  }
+});
+
+startHeartRain(document.getElementById('welcomeHearts'), '#ff9db8');
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  stopHeartRain();
+  buildAll();
+  document.getElementById('welcome').classList.add('hidden');
+  goTo(0);
+});
+</script>
+</body>
+</html>
